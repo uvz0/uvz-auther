@@ -1,14 +1,13 @@
 name: "Release the Beast"
+
 on:
   push:
     tags:
-      - 'v*' # Triggers when you: git tag v1.0.0 && git push origin v1.0.0
-  release:
-    types: [published] # Triggers when you click "Publish Release" in the UI
-  workflow_dispatch: # Allows you to click a "Run Workflow" button manually for testing
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  publish-tauri:
+  publish-desktop:
     permissions:
       contents: write
     strategy:
@@ -32,17 +31,60 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
 
       - name: install frontend dependencies
-        run: npm install # Change to pnpm or yarn if you're a hipster
+        run: npm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # This will be replaced by the actual tag
+          tagName: v__VERSION__
           releaseName: "UVZ-AUTHER v__VERSION__"
-          releaseBody: "If this version breaks your computer, it's a feature, not a bug."
+          releaseBody: "Witness the glory of version v__VERSION__. Use at your own peril."
           releaseDraft: true
           prerelease: false
+
+  publish-android:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: "UVZ-AUTHER v__VERSION__"
+          releaseDraft: true
+          args: android build
