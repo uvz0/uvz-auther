@@ -6,7 +6,6 @@ on:
       - 'v*'
   workflow_dispatch:
 
-# This is the "God Mode" permission that fixes the 'Resource not accessible' error
 permissions:
   contents: write
 
@@ -49,7 +48,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
-          releaseBody: "Build successful. If it crashes, blame your OS. Version: ${{ github.ref_name }}"
+          releaseBody: "Build successful. Desktop binaries attached."
           releaseDraft: true
           prerelease: false
 
@@ -87,4 +86,5 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
           releaseDraft: true
-          args: android build
+          # Simplified arguments to avoid the 'run build' conflict
+          args: android build --apk
