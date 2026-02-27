@@ -6,10 +6,12 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# This is the "God Mode" permission that fixes the 'Resource not accessible' error
+permissions:
+  contents: write
+
 jobs:
   publish-desktop:
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -45,15 +47,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: "UVZ-AUTHER v__VERSION__"
-          releaseBody: "Witness the glory of version v__VERSION__. Use at your own peril."
+          tagName: ${{ github.ref_name }}
+          releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
+          releaseBody: "Build successful. If it crashes, blame your OS. Version: ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
 
   publish-android:
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: "UVZ-AUTHER v__VERSION__"
+          tagName: ${{ github.ref_name }}
+          releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
           releaseDraft: true
           args: android build
