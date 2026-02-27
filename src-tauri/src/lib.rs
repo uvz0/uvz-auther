@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
+use tauri::Manager;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
 type HmacSha1 = Hmac<Sha1>;
@@ -60,8 +61,8 @@ fn generate_totp(secret: String, counter: u64) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn save_keys(content: String) -> Result<(), String> {
-    let file_path: PathBuf = get_keys_file_path()?;
+fn save_keys(app: tauri::AppHandle, content: String) -> Result<(), String> {
+    let file_path: PathBuf = get_keys_file_path(&app)?;
     eprintln!("save_keys: writing to {:?}, {} bytes", file_path, content.len());
     fs::write(file_path, content).map_err(|e| format!("Failed to save keys: {}", e))?;
     eprintln!("save_keys: write completed");
@@ -69,8 +70,8 @@ fn save_keys(content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn load_keys() -> Result<Vec<(String, String)>, String> {
-    let file_path = get_keys_file_path()?;
+fn load_keys(app: tauri::AppHandle) -> Result<Vec<(String, String)>, String> {
+    let file_path = get_keys_file_path(&app)?;
 
     eprintln!("load_keys: loading from {:?}", file_path);
 
@@ -107,8 +108,8 @@ fn load_keys() -> Result<Vec<(String, String)>, String> {
 }
 
 #[tauri::command]
-fn add_key(name: String, secret: String) -> Result<(), String> {
-    let file_path = get_keys_file_path()?;
+fn add_key(app: tauri::AppHandle, name: String, secret: String) -> Result<(), String> {
+    let file_path = get_keys_file_path(&app)?;
     eprintln!("add_key: file_path={:?}, name='{}'", file_path, name);
 
     // Read existing keys
@@ -152,8 +153,8 @@ fn add_key(name: String, secret: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn delete_key(name: String) -> Result<(), String> {
-    let file_path = get_keys_file_path()?;
+fn delete_key(app: tauri::AppHandle, name: String) -> Result<(), String> {
+    let file_path = get_keys_file_path(&app)?;
     eprintln!("delete_key: file_path={:?}, name='{}'", file_path, name);
 
     if !file_path.exists() {
@@ -191,7 +192,7 @@ fn delete_key(name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn copy_to_clipboard(app: tauri::AppHandle<tauri::Wry>, totp: String) -> Result<(), String> {
+fn copy_to_clipboard(app: tauri::AppHandle, totp: String) -> Result<(), String> {
     app.clipboard()
         .write_text(totp)
         .map_err(|e| format!("Failed to copy to clipboard: {}", e))
@@ -201,9 +202,38 @@ fn copy_to_clipboard(app: tauri::AppHandle<tauri::Wry>, totp: String) -> Result<
 // HELPER FUNCTIONS
 // ============================================================================
 
-fn get_keys_file_path() -> Result<PathBuf, String> {
-    let home = dirs::home_dir().ok_or("Could not determine home directory")?;
-    Ok(home.join(".uv-auth-keys.env"))
+fn get_keys_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to resolve app data directory: {}", e))?;
+
+    fs::create_dir_all(&dir)
+        .map_err(|e| format!("Failed to create app data directory {:?}: {}", dir, e))?;
+
+    let new_path = dir.join("uv-auth-keys.env");
+
+    // Migrate legacy path (~/.uv-auth-keys.env) to app_data_dir on desktop.
+    // This keeps existing users' keys after we changed storage location.
+    if !new_path.exists() {
+        #[cfg(desktop)]
+        {
+            if let Some(old_path) = legacy_keys_file_path() {
+                if old_path.exists() {
+                    // Best-effort copy; if it fails we still return the new path and
+                    // downstream reads will behave as "no keys".
+                    let _ = fs::copy(&old_path, &new_path);
+                }
+            }
+        }
+    }
+
+    Ok(new_path)
+}
+
+#[cfg(desktop)]
+fn legacy_keys_file_path() -> Option<PathBuf> {
+    dirs::home_dir().map(|home| home.join(".uv-auth-keys.env"))
 }
 
 // ============================================================================
