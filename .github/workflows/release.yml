@@ -86,5 +86,5 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
           releaseDraft: true
-          # Simplified arguments to avoid the 'run build' conflict
+          # THE FIX: This tells the action to execute 'tauri android build --apk'
           args: android build --apk
