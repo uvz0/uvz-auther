@@ -1,9 +1,11 @@
 name: "Release the Beast"
-
 on:
   push:
     tags:
-      - 'v*' # Triggers on any tag starting with 'v', like v1.0.1
+      - 'v*' # Triggers when you: git tag v1.0.0 && git push origin v1.0.0
+  release:
+    types: [published] # Triggers when you click "Publish Release" in the UI
+  workflow_dispatch: # Allows you to click a "Run Workflow" button manually for testing
 
 jobs:
   publish-tauri:
