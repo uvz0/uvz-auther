@@ -15,78 +15,75 @@ jobs:
       fail-fast: false
       matrix:
         platform: [macos-latest, ubuntu-22.04, windows-latest]
-
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-
+          
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
-
+        
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf
-
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+          
       - name: install frontend dependencies
         run: npm install
-
+        
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "UVZ-AUTHER ${{ github.ref_name }}"
-          releaseBody: "Build successful. Desktop binaries attached."
           releaseDraft: true
-          prerelease: false
 
- 
   publish-android:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: setup node
-          uses: actions/setup-node@v4
-          with:
-            node-version: lts/*
-        - name: install Rust stable
-          uses: dtolnay/rust-toolchain@stable
-          with:
-            targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-        - name: setup Java
-          uses: actions/setup-java@v4
-          with:
-            distribution: 'zulu'
-            java-version: '17'
-        - name: setup Android SDK
-          uses: android-actions/setup-android@v3
-  
-        - name: install frontend dependencies
-          run: npm install
-  
-        # NEW STEP: This generates the missing 'gen/android' folder on the fly
-        - name: Initialize Android project
-          run: npm run tauri android init
-  
-        - name: Build Android APK
-          run: npm run tauri android build -- --apk
-  
-        - name: Upload APK to Release
-          uses: softprops/action-gh-release@v2
-          if: startsWith(github.ref, 'refs/tags/')
-          with:
-            files: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - name: Initialize Android project
+        run: npm run tauri android init
+
+      - name: Build Android APK
+        # We use '-- --apk' to ensure the flag passes through npm to the tauri cli
+        run: npm run tauri android build -- --apk
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            src-tauri/gen/android/**/*.apk
+            src-tauri/gen/android/**/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
