@@ -13,25 +13,21 @@ type HmacSha1 = Hmac<Sha1>;
 // TOTP GENERATION (RFC 6238)
 // ============================================================================
 
-/// Decodes a Base32 string and returns the raw bytes.
 fn base32_decode(input: &str) -> Result<Vec<u8>, String> {
     base32::decode(base32::Alphabet::RFC4648 { padding: true }, input)
         .ok_or_else(|| "Failed to decode Base32 secret".to_string())
 }
 
-/// Generates a 6-digit TOTP using HMAC-SHA1 dynamic truncation (RFC 6238).
 fn generate_totp_internal(secret: &[u8], counter: u64) -> String {
-    // Convert counter to 8-byte big-endian
     let counter_bytes: [u8; _] = counter.to_be_bytes();
 
-    // Compute HMAC-SHA1
+    
     let mut mac: hmac::digest::core_api::CoreWrapper<hmac::HmacCore<hmac::digest::core_api::CoreWrapper<sha1::Sha1Core>>> = HmacSha1::new_from_slice(secret)
         .expect("HMAC can take key of any size");
     mac.update(&counter_bytes);
     let result = mac.finalize();
     let hmac_bytes: hmac::digest::generic_array::GenericArray<u8, hmac::digest::typenum::UInt<hmac::digest::typenum::UInt<hmac::digest::typenum::UInt<hmac::digest::typenum::UInt<hmac::digest::typenum::UInt<hmac::digest::typenum::UTerm, hmac::digest::consts::B1>, hmac::digest::consts::B0>, hmac::digest::consts::B1>, hmac::digest::consts::B0>, hmac::digest::consts::B0>> = result.into_bytes();
 
-    // Dynamic truncation (RFC 6238 Section 5.3)
     let offset = (hmac_bytes[19] & 0x0f) as usize;
     let p: u32 = u32::from_be_bytes([
         hmac_bytes[offset],
@@ -39,11 +35,9 @@ fn generate_totp_internal(secret: &[u8], counter: u64) -> String {
         hmac_bytes[offset + 2],
         hmac_bytes[offset + 3],
     ]);
-
-    // Apply mask to clear sign bit and get 6-digit code
+    
     let otp = (p & 0x7fff_ffff) % 1_000_000;
 
-    // Return as zero-padded 6-digit string
     format!("{:06}", otp)
 }
 
@@ -53,10 +47,8 @@ fn generate_totp_internal(secret: &[u8], counter: u64) -> String {
 
 #[tauri::command]
 fn generate_totp(secret: String, counter: u64) -> Result<String, String> {
-    // Decode Base32 secret
     let secret_bytes: Vec<u8> = base32_decode(&secret)?;
 
-    // Generate and return TOTP
     Ok(generate_totp_internal(&secret_bytes, counter))
 }
 
@@ -75,7 +67,6 @@ fn load_keys(app: tauri::AppHandle) -> Result<Vec<(String, String)>, String> {
 
     eprintln!("load_keys: loading from {:?}", file_path);
 
-    // If file doesn't exist, return empty list
     if !file_path.exists() {
         return Ok(vec![]);
     }
@@ -90,12 +81,10 @@ fn load_keys(app: tauri::AppHandle) -> Result<Vec<(String, String)>, String> {
         let line = line.map_err(|e| format!("Failed to read line: {}", e))?;
         let line = line.trim();
 
-        // Skip empty lines
         if line.is_empty() {
             continue;
         }
 
-        // Parse KEY_NAME=SECRET
         if let Some((name, secret)) = line.split_once('=') {
             keys.push((
                 name.trim().to_string(),
@@ -112,7 +101,6 @@ fn add_key(app: tauri::AppHandle, name: String, secret: String) -> Result<(), St
     let file_path = get_keys_file_path(&app)?;
     eprintln!("add_key: file_path={:?}, name='{}'", file_path, name);
 
-    // Read existing keys
     let mut keys: Vec<(String, String)> = if file_path.exists() {
         let file = fs::File::open(&file_path)
             .map_err(|e| format!("Failed to open keys file: {}", e))?;
@@ -128,18 +116,16 @@ fn add_key(app: tauri::AppHandle, name: String, secret: String) -> Result<(), St
                 }
             }
         }
-        k
+        
     } else {
         vec![]
     };
 
-    // Remove duplicate if exists
-    keys.retain(|(k, _)| k != &name);
 
-    // Add new key
+    keys.retain(|(k, _)| k != &name);
+    
     keys.push((name, secret));
 
-    // Write back to file
     let mut file = fs::File::create(&file_path)
         .map_err(|e| format!("Failed to create keys file: {}", e))?;
     eprintln!("add_key: writing {} key(s) to {:?}", keys.len(), file_path);
@@ -161,7 +147,6 @@ fn delete_key(app: tauri::AppHandle, name: String) -> Result<(), String> {
         return Ok(());
     }
 
-    // Read existing keys
     let file = fs::File::open(&file_path)
         .map_err(|e| format!("Failed to open keys file: {}", e))?;
     let reader = BufReader::new(file);
@@ -179,7 +164,7 @@ fn delete_key(app: tauri::AppHandle, name: String) -> Result<(), String> {
         }
     }
 
-    // Write back to file
+
     let mut file = fs::File::create(&file_path)
         .map_err(|e| format!("Failed to create keys file: {}", e))?;
 
@@ -213,15 +198,13 @@ fn get_keys_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 
     let new_path = dir.join("uv-auth-keys.env");
 
-    // Migrate legacy path (~/.uv-auth-keys.env) to app_data_dir on desktop.
-    // This keeps existing users' keys after we changed storage location.
+
     if !new_path.exists() {
         #[cfg(desktop)]
         {
             if let Some(old_path) = legacy_keys_file_path() {
                 if old_path.exists() {
-                    // Best-effort copy; if it fails we still return the new path and
-                    // downstream reads will behave as "no keys".
+                
                     let _ = fs::copy(&old_path, &new_path);
                 }
             }
