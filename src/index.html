@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UVZ Auther - TOTP Manager</title>
+  <title>WAuther - TOTP Manager</title>
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="main.js" defer></script>
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
     <header class="app-header">
       <div class="logo"></div>
       <h1 class="app-title">UVZ Auther</h1>
@@ -17,9 +16,7 @@
       
     </header>
 
-    <!-- Main Content -->
     <main class="app-main">
-      <!-- Add Key Dropdown Toggle -->
       <div class="add-key-header">
         <button class="dropdown-toggle" id="toggle-manual-panel" type="button">
           <span class="dropdown-label">Add new key</span>
@@ -28,7 +25,6 @@
         </button>
       </div>
 
-      <!-- Manual Entry Panel (Dropdown Content) -->
       <section class="input-panel" id="manual-panel">
         <h2 class="panel-title">Add Keys</h2>
         
@@ -63,7 +59,6 @@
         <button class="btn-primary" id="add-manual-btn">Add Key</button>
       </section>
 
-      <!-- Saved Keys Container -->
       <section class="saved-keys-section">
         <h2 class="panel-title">Your Keys</h2>
         <div class="saved-keys-container" id="keys-container">
@@ -75,7 +70,6 @@
       </section>
     </main>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
   </div>
 </body>
