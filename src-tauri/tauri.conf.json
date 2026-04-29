@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "uvz-auther",
+  "productName": "wauther",
   "version": "0.1.0",
-  "identifier": "com.uvzauther.app",
+  "identifier": "com.wauther.app",
   "build": {
     "frontendDist": "../src"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "UVZ AUTHER",
+        "title": "W AUTHER",
         "width": 800,
         "height": 600
       }
