@@ -3,13 +3,13 @@
    ============================================================================ */
 
 :root {
-  /* Shadows */
+
   --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
   --shadow-3: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10);
   --shadow-4: 0 15px 25px rgba(0, 0, 0, 0.15), 0 5px 10px rgba(0, 0, 0, 0.05);
   
-  /* Typography */
+
   --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 14px;
@@ -18,7 +18,7 @@
   --font-size-xl: 24px;
   --font-size-2xl: 32px;
   
-  /* Spacing */
+  
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -26,7 +26,7 @@
   --space-xl: 24px;
   --space-2xl: 32px;
   
-  /* Transitions */
+
   --transition-subtle: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-standard: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-emphasized: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -230,13 +230,12 @@ body {
   margin-top: var(--space-sm);
 }
 
-/* Password Input Wrapper */
 .password-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
-/* uvz0 !!!! */
+/* AstroJr0 !!!! */
 .password-input-wrapper .form-input {
   padding-right: 45px;
 }
@@ -380,7 +379,6 @@ body {
   left: 100%;
 }
 
-/* Timer Circle - Da top left one ok? */
 .timer-circle {
   grid-row: 1 / -1;
   grid-column: 1;
@@ -418,7 +416,6 @@ body {
   z-index: 2;
 }
 
-/* Key Content - Center */
 .key-content {
   grid-row: 1 / -1;
   grid-column: 2;
@@ -468,7 +465,6 @@ body {
   opacity: 1;
 }
 
-/* Delete Button - Top Right */
 .delete-btn {
   grid-row: 1;
   grid-column: 3;
@@ -506,7 +502,7 @@ body {
 }
 
 /* ============================================================================
-   SCROLLBAR (CUSTOM) YEAH WE GOTTA CUSTOMIZE THIS SHIT
+   SCROLLBAR (CUSTOM ONE) 
    ============================================================================ */
 
 .saved-keys-container::-webkit-scrollbar {
@@ -528,7 +524,6 @@ body {
 }
 
 
-/* Firefox Scrollbar */
 .saved-keys-container {
   scrollbar-color: #393939 transparent;
   scrollbar-width: thin;
@@ -572,7 +567,7 @@ body {
 }
 
 /* ============================================================================
-   RESPONSIVE DESIGN YO THIS IS GONNA BE A SHITTY RESPONSIVE DESIGN TOO
+   RESPONSIVE DESIGNZ
    ============================================================================ */
 
 @media (max-width: 640px) {
@@ -639,5 +634,5 @@ body {
 }
 
 .animating {
-  animation: pulse 0.6s ease; /* ANIMATION FOR THE COPY INDICATOR YO */
+  animation: pulse 0.6s ease;
 }
