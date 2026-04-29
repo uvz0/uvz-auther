@@ -2,12 +2,10 @@
 // TAURI IPC & INITIALIZATION (Beginning of a sexy totp generator)
 // ============================================================================
 
-// Lazy access: don't touch window.__TAURI__ at load time (it may not be ready)
 function invoke(cmd, args = {}) {
   return window.__TAURI__.core.invoke(cmd, args);
 }
 
-// In-memory state
 let keys = []; 
 let totpIntervals = {}; 
 
@@ -29,7 +27,6 @@ function setupEventListeners() {
   const manualPanel = document.getElementById('manual-panel');
   const toggleBtn = document.getElementById('toggle-manual-panel');
 
-  // Dropdown toggle for manual key form
   if (toggleBtn && manualPanel) {
     toggleBtn.addEventListener('click', () => {
       const isOpen = manualPanel.classList.toggle('open');
@@ -37,17 +34,16 @@ function setupEventListeners() {
     });
   }
 
-  // Add key button
   document.getElementById('add-manual-btn').addEventListener('click', () => {
     addKeyManual();
   });
 
-  // Password visibility toggle
+  
   document.getElementById('toggle-password').addEventListener('click', () => {
     togglePasswordVisibility();
   });
 
-  // Enter key support
+
   document.getElementById('secret-name').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addKeyManual();
   });
@@ -91,7 +87,6 @@ function isValidBase32(input) {
 async function loadKeysFromFile() {
   try {
     const raw = await invoke('load_keys');
-    // Normalize Rust tuples [name, secret] to objects {name, secret}
     if (Array.isArray(raw)) {
       keys = raw.map(k => Array.isArray(k) ? { name: k[0], secret: k[1] } : k);
     } else {
@@ -126,7 +121,6 @@ async function addKeyManual() {
   const name = document.getElementById('secret-name').value.trim();
   const secret = document.getElementById('secret-value').value.trim();
 
-  // Validation
   if (!name) {
     showToast('Please enter a key name', 'error');
     return;
@@ -143,19 +137,17 @@ async function addKeyManual() {
   }
 
   try {
-    // Check for duplicates
+  
     if (keys.some(k => k.name === name)) {
       showToast('A key with this name already exists (it will be updated)', 'error');
       return;
     }
 
-    // Save to file
+  
     await addKeyToFile(name, secret);
 
-    // Update in-memory state
     keys.push({ name, secret });
 
-    // Render
     renderKeyCards();
     clearInputs();
     showToast(`Key "${name}" added successfully`, 'success');
@@ -182,20 +174,20 @@ async function addKeyFromURI() {
     for (const parsedKey of parsedKeys) {
       const { name, secret } = parsedKey;
 
-      // Check for duplicates
+      
       if (keys.some(k => k.name === name)) {
         showToast(`Key "${name}" already exists (it will be updated)`, 'error');
         continue;
       }
 
-      // Save to file
+    
       await addKeyToFile(name, secret);
 
-      // Update in-memory state
+      
       keys.push({ name, secret });
     }
 
-    // Render
+  
     renderKeyCards();
     clearInputs();
     switchMode('manual');
@@ -215,19 +207,14 @@ async function deleteKey(name) {
   }
 
   try {
-    // Delete from file
     await deleteKeyFromFile(name);
 
-    // Update in-memory state
     keys = keys.filter(k => k.name !== name);
-
-    // Stop TOTP interval
     if (totpIntervals[name]) {
       clearInterval(totpIntervals[name]);
       delete totpIntervals[name];
     }
 
-    // Render
     renderKeyCards();
     showToast(`Key "${name}" deleted`, 'success');
   } catch (error) {
@@ -252,23 +239,15 @@ async function generateTOTP(secret, counter) {
   }
 }
 
-/**
- * Get current counter (seconds since epoch / 30)
- */
 function getCurrentCounter() {
   return Math.floor(Date.now() / 1000 / 30);
 }
 
-/**
- * Get remaining seconds for current TOTP (0-30)
- */
 function getRemainingSeconds() {
   return 30 - (Math.floor(Date.now() / 1000) % 30);
 }
 
-/**
- * Update TOTP display for a key
- */
+
 async function updateKeyTOTP(name, secret) {
   const counter = getCurrentCounter();
   const remaining = getRemainingSeconds();
@@ -277,13 +256,11 @@ async function updateKeyTOTP(name, secret) {
   const card = document.querySelector(`[data-key-name="${escapeDataAttribute(name)}"]`);
   if (!card) return;
 
-  // Update TOTP display
   const totpElement = card.querySelector('.key-totp');
   if (totpElement) {
     totpElement.textContent = totp;
   }
 
-  // Update timer circle
   const timerCircle = card.querySelector('.timer-circle');
   if (timerCircle) {
     const progress = remaining / 30;
@@ -295,19 +272,13 @@ async function updateKeyTOTP(name, secret) {
   }
 }
 
-/**
- * Start TOTP timer for a key
- */
 function startTOTPTimer(name, secret) {
-  // Clear existing interval
+
   if (totpIntervals[name]) {
     clearInterval(totpIntervals[name]);
   }
-
-  // Initial update
   updateKeyTOTP(name, secret);
 
-  // Update every second
   totpIntervals[name] = setInterval(() => {
     updateKeyTOTP(name, secret);
   }, 1000);
@@ -319,8 +290,7 @@ function startTOTPTimer(name, secret) {
 
 function renderKeyCards() {
   const container = document.getElementById('keys-container');
-
-  // Stop all intervals
+  
   Object.values(totpIntervals).forEach(id => clearInterval(id));
   totpIntervals = {};
 
@@ -352,11 +322,10 @@ function renderKeyCards() {
     </div>
   `).join('');
 
-  // Attach event listeners
   keys.forEach(({ name, secret }) => {
     const card = container.querySelector(`[data-key-name="${escapeDataAttribute(name)}"]`);
     
-    // Copy to clipboard on click
+  
     card.addEventListener('click', async (e) => {
       if (e.target.classList.contains('delete-btn')) return;
       const counter = getCurrentCounter();
@@ -365,13 +334,13 @@ function renderKeyCards() {
       showToast('TOTP copied to clipboard', 'success');
     });
 
-    // Delete button
+  
     card.querySelector('.delete-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       deleteKey(name);
     });
 
-    // Start TOTP timer
+  
     startTOTPTimer(name, secret);
   });
 }
@@ -404,7 +373,6 @@ function showToast(message, type = 'info') {
   toast.textContent = message;
   toast.className = `toast show ${type}`;
 
-  // Auto-hide after 4 seconds
   setTimeout(() => {
     toast.classList.remove('show');
   }, 4000);
