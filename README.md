@@ -1,6 +1,6 @@
 # UNDER CONSTRUCTION!!1!11!! (im workin on it, trust me) v2 soon...
 
-# 💀 WAUTHER
+# 🔏 WAUTHER
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)
 ![Tauri](https://img.shields.io/badge/Tauri-FFC131?style=for-the-badge&logo=tauri&logoColor=white)
@@ -25,7 +25,8 @@ We don’t trust "**The Cloud.**" The Cloud is just a fancy term for "someone el
 Instead, **WAauther** shoves your data into the local abyss:
 `~/.uvz-auth-keys.env`
 
-> **PRO-TIP:** If you delete this file, your keys are gone. If you format your drive, your keys are gone. If you accidentally `rm -rf ~` while drunk-coding, your keys are gone—and you’ll have earned the silence that follows.
+> [!WARNING] 
+> If you delete this file, your keys are gone. If you format your drive, your keys are gone. If you accidentally `rm -rf ~` while drunk-coding, your keys are gone—and you’ll have earned the silence that follows.
 
 
 
@@ -44,7 +45,7 @@ cd wauther
 3. Feed the dependencies:
 
 ```bash
-npm install  # Or pnpm/yarn. Pick your favorite poison.
+npm install  # Or pnpm/yarn/bun. Pick yours...
 ```
 
 4. Invoke the spirits:
@@ -62,10 +63,8 @@ This software is provided "as is," which is a polite way of saying it might work
 
 - Skill Issue: WAuther assumes you are a semi-competent adult. If you aren't, go back to using a physical notebook and a crayon.
 
-## 🩸 Contribution
+## 🤗 Contribution 
 Found a bug? Keep it as a pet. Or, if you’re feeling masochistic, open a Pull Request and try to convince me your code doesn't suck. Check CONTRIBUTING.md for the rules of engagement.
 
 ## 📜 License
 Probably MIT. Or maybe I’ll just haunt your terminal if you steal the logic. Use it at your own peril.
-
-> Made with caffeine, spite, and Rust. 🦀
