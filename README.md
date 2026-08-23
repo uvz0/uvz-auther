@@ -1,3 +1,5 @@
+# UNDER CONSTRUCTION!!1!11!! (im workin on it, trust me) v2 soon...
+
 # 💀 WAUTHER
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)
